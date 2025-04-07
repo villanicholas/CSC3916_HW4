@@ -1,0 +1,233 @@
+{
+	"info": {
+		"_postman_id": "unique-id",
+		"name": "Movie Reviews API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Sign Up",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"testuser\",\n    \"password\": \"testpassword\",\n    \"name\": \"Test User\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/signup",
+							"host": ["{{BASE_URL}}"],
+							"path": ["signup"]
+						}
+					}
+				},
+				{
+					"name": "Sign In",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.token) {",
+									"    pm.environment.set(\"TOKEN\", jsonData.token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"testuser\",\n    \"password\": \"testpassword\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/signin",
+							"host": ["{{BASE_URL}}"],
+							"path": ["signin"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Movies",
+			"item": [
+				{
+					"name": "Get All Movies",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/movies",
+							"host": ["{{BASE_URL}}"],
+							"path": ["movies"]
+						}
+					}
+				},
+				{
+					"name": "Get All Movies with Reviews",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/movies?reviews=true",
+							"host": ["{{BASE_URL}}"],
+							"path": ["movies"],
+							"query": [
+								{
+									"key": "reviews",
+									"value": "true"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Movie by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/movies/{{MOVIE_ID}}",
+							"host": ["{{BASE_URL}}"],
+							"path": ["movies", "{{MOVIE_ID}}"]
+						}
+					}
+				},
+				{
+					"name": "Get Movie by ID with Reviews",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/movies/{{MOVIE_ID}}?reviews=true",
+							"host": ["{{BASE_URL}}"],
+							"path": ["movies", "{{MOVIE_ID}}"],
+							"query": [
+								{
+									"key": "reviews",
+									"value": "true"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Movie",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{TOKEN}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Test Movie\",\n    \"year\": 2024,\n    \"genre\": \"Action\",\n    \"actors\": [\"Actor 1\", \"Actor 2\"],\n    \"imageUrl\": \"https://example.com/movie.jpg\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/movies",
+							"host": ["{{BASE_URL}}"],
+							"path": ["movies"]
+						}
+					}
+				},
+				{
+					"name": "Get Invalid Movie ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/movies/invalid_id",
+							"host": ["{{BASE_URL}}"],
+							"path": ["movies", "invalid_id"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Reviews",
+			"item": [
+				{
+					"name": "Create Review",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{TOKEN}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"movieId\": \"{{MOVIE_ID}}\",\n    \"review\": \"Great movie!\",\n    \"rating\": 5\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/reviews",
+							"host": ["{{BASE_URL}}"],
+							"path": ["reviews"]
+						}
+					}
+				},
+				{
+					"name": "Create Review (Invalid Movie)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{TOKEN}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"movieId\": \"invalid_movie_id\",\n    \"review\": \"Great movie!\",\n    \"rating\": 5\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/reviews",
+							"host": ["{{BASE_URL}}"],
+							"path": ["reviews"]
+						}
+					}
+				}
+			]
+		}
+	]
+} 

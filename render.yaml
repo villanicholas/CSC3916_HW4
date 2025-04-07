@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: movie-reviews-api
+    env: node
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: DB
+        sync: false
+      - key: SECRET_KEY
+        sync: false
+      - key: GA_KEY
+        sync: false
+      - key: NODE_ENV
+        value: production 
