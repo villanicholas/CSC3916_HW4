@@ -12,4 +12,8 @@ services:
       - key: GA_KEY
         sync: false
       - key: NODE_ENV
-        value: production 
+        value: production
+    healthCheckPath: /movies
+    autoDeploy: true
+    env: node
+    plan: free 

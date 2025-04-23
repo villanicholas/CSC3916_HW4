@@ -4,6 +4,8 @@ File: Server.js
 Description: Web API scaffolding for Movie API
  */
 
+require('dotenv').config();
+
 var express = require('express');
 var bodyParser = require('body-parser');
 var passport = require('passport');
@@ -16,6 +18,17 @@ var Movie = require('./Movies');
 var Review = require('./Reviews');
 var crypto = require('crypto');
 var request = require('request-promise');
+
+// Verify environment variables
+if (!process.env.SECRET_KEY) {
+    console.error('SECRET_KEY environment variable is not set');
+    process.exit(1);
+}
+
+if (!process.env.DB) {
+    console.error('DB environment variable is not set');
+    process.exit(1);
+}
 
 var app = express();
 app.use(cors());
