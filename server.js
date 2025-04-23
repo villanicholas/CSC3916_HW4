@@ -18,6 +18,7 @@ var Movie = require('./Movies');
 var Review = require('./Reviews');
 var crypto = require('crypto');
 var request = require('request-promise');
+var path = require('path');
 
 // Verify environment variables
 if (!process.env.SECRET_KEY) {
@@ -34,6 +35,9 @@ var app = express();
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
+
+// Serve static files from the public directory
+app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(passport.initialize());
 
