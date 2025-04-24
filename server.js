@@ -30,7 +30,20 @@ for (const envVar of requiredEnvVars) {
 }
 
 var app = express();
-app.use(cors());
+
+// Configure CORS with more specific options
+app.use(cors({
+    origin: '*', // Allow all origins
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// Ensure proper content-type for all responses
+app.use((req, res, next) => {
+    res.header('Content-Type', 'application/json');
+    next();
+});
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
@@ -40,6 +53,17 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(passport.initialize());
 
 var router = express.Router();
+
+// Add a simple status endpoint to check if server is running
+router.get('/status', function(req, res) {
+    res.json({ 
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development',
+        database: process.env.DB ? 'configured' : 'not configured',
+        secret: process.env.SECRET_KEY ? 'configured' : 'not configured'
+    });
+});
 
 const GA_TRACKING_ID = process.env.GA_KEY;
 

@@ -67,9 +67,38 @@
         const API_URL = window.location.origin;
         let token = '';
 
+        // Helper function for better error handling during fetch
+        async function fetchWithErrorHandling(url, options = {}) {
+            try {
+                const response = await fetch(url, options);
+                
+                // Log status and headers for debugging
+                console.log(`Response status: ${response.status} ${response.statusText}`);
+                console.log('Response headers:', Object.fromEntries([...response.headers]));
+                
+                // Get the raw text first
+                const text = await response.text();
+                
+                // Log the raw response
+                console.log('Raw response:', text);
+                
+                // Try to parse as JSON
+                try {
+                    return text ? JSON.parse(text) : {};
+                } catch (parseError) {
+                    console.error('JSON parse error:', parseError);
+                    console.error('Failed to parse text:', text);
+                    throw new Error(`Failed to parse response as JSON: ${parseError.message}. Raw response: ${text.substring(0, 100)}...`);
+                }
+            } catch (error) {
+                console.error('Fetch error:', error);
+                throw error;
+            }
+        }
+
         async function testAuth() {
             try {
-                const response = await fetch(`${API_URL}/signin`, {
+                const data = await fetchWithErrorHandling(`${API_URL}/signin`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -79,7 +108,7 @@
                         password: 'testpassword'
                     })
                 });
-                const data = await response.json();
+                
                 document.getElementById('authResult').textContent = JSON.stringify(data, null, 2);
                 if (data.token) {
                     token = data.token;
@@ -91,8 +120,7 @@
 
         async function getMovies() {
             try {
-                const response = await fetch(`${API_URL}/movies`);
-                const data = await response.json();
+                const data = await fetchWithErrorHandling(`${API_URL}/movies`);
                 document.getElementById('moviesResult').textContent = JSON.stringify(data, null, 2);
             } catch (error) {
                 document.getElementById('moviesResult').textContent = 'Error: ' + error.message;
@@ -101,8 +129,7 @@
 
         async function getMoviesWithReviews() {
             try {
-                const response = await fetch(`${API_URL}/movies?reviews=true`);
-                const data = await response.json();
+                const data = await fetchWithErrorHandling(`${API_URL}/movies?reviews=true`);
                 document.getElementById('moviesResult').textContent = JSON.stringify(data, null, 2);
             } catch (error) {
                 document.getElementById('moviesResult').textContent = 'Error: ' + error.message;
@@ -116,7 +143,7 @@
             }
 
             try {
-                const response = await fetch(`${API_URL}/reviews`, {
+                const data = await fetchWithErrorHandling(`${API_URL}/reviews`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -128,7 +155,6 @@
                         rating: 5
                     })
                 });
-                const data = await response.json();
                 document.getElementById('reviewsResult').textContent = JSON.stringify(data, null, 2);
             } catch (error) {
                 document.getElementById('reviewsResult').textContent = 'Error: ' + error.message;
