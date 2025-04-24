@@ -21,14 +21,12 @@ var request = require('request-promise');
 var path = require('path');
 
 // Verify environment variables
-if (!process.env.SECRET_KEY) {
-    console.error('SECRET_KEY environment variable is not set');
-    process.exit(1);
-}
-
-if (!process.env.DB) {
-    console.error('DB environment variable is not set');
-    process.exit(1);
+const requiredEnvVars = ['SECRET_KEY', 'DB'];
+for (const envVar of requiredEnvVars) {
+    if (!process.env[envVar]) {
+        console.error(`${envVar} environment variable is not set`);
+        process.exit(1);
+    }
 }
 
 var app = express();
@@ -349,10 +347,16 @@ router.post('/signin', function (req, res) {
 
 app.use('/', router);
 
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({ success: false, message: 'Something broke!' });
+});
+
 // Start server only if we're not in a test environment
 if (process.env.NODE_ENV !== 'test') {
     const port = process.env.PORT || 8080;
-    app.listen(port, () => {
+    app.listen(port, '0.0.0.0', () => {
         console.log(`Server is running on port ${port}`);
         console.log('Environment:', process.env.NODE_ENV || 'development');
         console.log('Database:', process.env.DB ? 'Connected' : 'Not connected');
