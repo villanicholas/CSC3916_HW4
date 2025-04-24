@@ -172,6 +172,49 @@ router.route('/movies/:id')
                 res.json({ success: true, movie: movie });
             });
         }
+    })
+    .put(authJwtController.isAuthenticated, function (req, res) {
+        if (!req.body.title || !req.body.year || !req.body.genre || !req.body.actors) {
+            return res.json({ success: false, message: 'Please provide all required fields.' });
+        }
+
+        Movie.findByIdAndUpdate(
+            req.params.id,
+            {
+                title: req.body.title,
+                year: req.body.year,
+                genre: req.body.genre,
+                actors: req.body.actors,
+                imageUrl: req.body.imageUrl
+            },
+            { new: true },
+            function (err, movie) {
+                if (err) {
+                    return res.status(500).json({ success: false, message: 'Error updating movie.' });
+                }
+                if (!movie) {
+                    return res.status(404).json({ success: false, message: 'Movie not found.' });
+                }
+                res.json({ success: true, message: 'Movie updated!', movie: movie });
+            }
+        );
+    })
+    .delete(authJwtController.isAuthenticated, function (req, res) {
+        Movie.findByIdAndDelete(req.params.id, function (err, movie) {
+            if (err) {
+                return res.status(500).json({ success: false, message: 'Error deleting movie.' });
+            }
+            if (!movie) {
+                return res.status(404).json({ success: false, message: 'Movie not found.' });
+            }
+            // Also delete all reviews associated with this movie
+            Review.deleteMany({ movieId: req.params.id }, function (err) {
+                if (err) {
+                    console.error('Error deleting associated reviews:', err);
+                }
+                res.json({ success: true, message: 'Movie and associated reviews deleted!' });
+            });
+        });
     });
 
 // Reviews endpoints
@@ -206,6 +249,55 @@ router.route('/reviews')
                         // Still return success even if analytics fails
                         res.json({ success: true, message: 'Review created!' });
                     });
+            });
+        });
+    });
+
+router.route('/reviews/:id')
+    .put(authJwtController.isAuthenticated, function (req, res) {
+        if (!req.body.review || !req.body.rating) {
+            return res.json({ success: false, message: 'Please provide all required fields.' });
+        }
+
+        Review.findById(req.params.id, function (err, review) {
+            if (err) {
+                return res.status(500).json({ success: false, message: 'Error finding review.' });
+            }
+            if (!review) {
+                return res.status(404).json({ success: false, message: 'Review not found.' });
+            }
+            if (review.username !== req.user.username) {
+                return res.status(403).json({ success: false, message: 'You can only update your own reviews.' });
+            }
+
+            review.review = req.body.review;
+            review.rating = req.body.rating;
+
+            review.save(function (err) {
+                if (err) {
+                    return res.json({ success: false, message: 'Error updating review.' });
+                }
+                res.json({ success: true, message: 'Review updated!' });
+            });
+        });
+    })
+    .delete(authJwtController.isAuthenticated, function (req, res) {
+        Review.findById(req.params.id, function (err, review) {
+            if (err) {
+                return res.status(500).json({ success: false, message: 'Error finding review.' });
+            }
+            if (!review) {
+                return res.status(404).json({ success: false, message: 'Review not found.' });
+            }
+            if (review.username !== req.user.username) {
+                return res.status(403).json({ success: false, message: 'You can only delete your own reviews.' });
+            }
+
+            review.remove(function (err) {
+                if (err) {
+                    return res.json({ success: false, message: 'Error deleting review.' });
+                }
+                res.json({ success: true, message: 'Review deleted!' });
             });
         });
     });
@@ -256,7 +348,20 @@ router.post('/signin', function (req, res) {
 });
 
 app.use('/', router);
-app.listen(process.env.PORT || 8080);
-module.exports = app; // for testing only
+
+// Start server only if we're not in a test environment
+if (process.env.NODE_ENV !== 'test') {
+    const port = process.env.PORT || 8080;
+    app.listen(port, () => {
+        console.log(`Server is running on port ${port}`);
+        console.log('Environment:', process.env.NODE_ENV || 'development');
+        console.log('Database:', process.env.DB ? 'Connected' : 'Not connected');
+    }).on('error', (err) => {
+        console.error('Server failed to start:', err);
+        process.exit(1);
+    });
+}
+
+module.exports = app; // for testing
 
 

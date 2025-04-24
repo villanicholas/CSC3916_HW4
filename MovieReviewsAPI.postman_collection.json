@@ -157,6 +157,51 @@
 					}
 				},
 				{
+					"name": "Update Movie",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{TOKEN}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Updated Movie Title\",\n    \"year\": 2025,\n    \"genre\": \"Comedy\",\n    \"actors\": [\"Actor 1\", \"Actor 2\", \"Actor 3\"],\n    \"imageUrl\": \"https://example.com/updated-movie.jpg\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/movies/{{MOVIE_ID}}",
+							"host": ["{{BASE_URL}}"],
+							"path": ["movies", "{{MOVIE_ID}}"]
+						}
+					}
+				},
+				{
+					"name": "Delete Movie",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{TOKEN}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/movies/{{MOVIE_ID}}",
+							"host": ["{{BASE_URL}}"],
+							"path": ["movies", "{{MOVIE_ID}}"]
+						}
+					}
+				},
+				{
 					"name": "Get Invalid Movie ID",
 					"request": {
 						"method": "GET",
@@ -197,6 +242,51 @@
 							"raw": "{{BASE_URL}}/reviews",
 							"host": ["{{BASE_URL}}"],
 							"path": ["reviews"]
+						}
+					}
+				},
+				{
+					"name": "Update Review",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{TOKEN}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"review\": \"Updated review text\",\n    \"rating\": 4\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/reviews/{{REVIEW_ID}}",
+							"host": ["{{BASE_URL}}"],
+							"path": ["reviews", "{{REVIEW_ID}}"]
+						}
+					}
+				},
+				{
+					"name": "Delete Review",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{TOKEN}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/reviews/{{REVIEW_ID}}",
+							"host": ["{{BASE_URL}}"],
+							"path": ["reviews", "{{REVIEW_ID}}"]
 						}
 					}
 				},

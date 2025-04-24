@@ -5,14 +5,14 @@ services:
     buildCommand: npm install
     startCommand: node server.js
     envVars:
-      - key: DB
-        sync: false
-      - key: SECRET_KEY
-        sync: false
-      - key: GA_KEY
-        sync: false
       - key: NODE_ENV
         value: production
+      - key: PORT
+        value: 8080
+      - key: DB
+        sync: false
+      - key: JWT_SECRET
+        sync: false
     healthCheckPath: /movies
     autoDeploy: true
     env: node

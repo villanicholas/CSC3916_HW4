@@ -4,13 +4,17 @@ var bcrypt = require('bcrypt-nodejs');
 
 mongoose.Promise = global.Promise;
 
-//mongoose.connect(process.env.DB, { useNewUrlParser: true });
-try {
-    mongoose.connect( process.env.DB, {useNewUrlParser: true, useUnifiedTopology: true}, () =>
-        console.log("connected"));
-}catch (error) {
-    console.log("could not connect");
-}
+// Improved MongoDB connection with proper error handling
+mongoose.connect(process.env.DB, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+}).then(() => {
+    console.log("Successfully connected to MongoDB");
+}).catch(err => {
+    console.error("MongoDB connection error:", err);
+    process.exit(1); // Exit the process if we can't connect to the database
+});
+
 mongoose.set('useCreateIndex', true);
 
 //user schema
