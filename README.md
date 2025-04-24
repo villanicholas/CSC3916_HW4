@@ -1,4 +1,6 @@
-# CSC3916_HW4 - Movie API with Reviews
+[<img src="https://run.pstmn.io/button.svg" alt="Run In Postman" style="width: 128px; height: 32px;">](https://app.getpostman.com/run-collection/41591699-ceb5674c-c6d1-41ef-ab24-7766b9e2fedb?action=collection%2Ffork&source=rip_markdown&collection-url=entityId%3D41591699-ceb5674c-c6d1-41ef-ab24-7766b9e2fedb%26entityType%3Dcollection%26workspaceId%3D9623c345-299d-4472-88d6-a6f8bfe4e721)
+
+# CSC3916_HW4 -
 
 ## Description
 This is a RESTful API for managing movies and their reviews. The API supports CRUD operations for movies and allows authenticated users to post reviews. It also includes Google Analytics integration for tracking review activities.
@@ -10,20 +12,6 @@ This is a RESTful API for managing movies and their reviews. The API supports CR
 - Review aggregation with movies
 - Google Analytics integration for tracking review activities
 
-## Installation
-1. Clone the repository
-2. Install dependencies:
-```bash
-npm install
-```
-3. Create a `.env` file with the following variables:
-```
-DB=<your_mongodb_connection_string>
-SECRET_KEY=<your_jwt_secret>
-GA_KEY=<your_google_analytics_tracking_id>
-```
-
-## API Endpoints
 
 ### Authentication
 - POST `/signup` - Create a new user account
