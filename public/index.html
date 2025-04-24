@@ -45,6 +45,7 @@
     <div class="container">
         <div class="card">
             <h2>Test Authentication</h2>
+            <button onclick="signUp()">Create Test User</button>
             <button onclick="testAuth()">Test Sign In</button>
             <pre id="authResult"></pre>
         </div>
@@ -158,6 +159,26 @@
                 document.getElementById('reviewsResult').textContent = JSON.stringify(data, null, 2);
             } catch (error) {
                 document.getElementById('reviewsResult').textContent = 'Error: ' + error.message;
+            }
+        }
+
+        async function signUp() {
+            try {
+                const data = await fetchWithErrorHandling(`${API_URL}/signup`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: 'Test User',
+                        username: 'testuser',
+                        password: 'testpassword'
+                    })
+                });
+                
+                document.getElementById('authResult').textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('authResult').textContent = 'Error: ' + error.message;
             }
         }
     </script>

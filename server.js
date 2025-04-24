@@ -353,7 +353,11 @@ router.post('/signin', function (req, res) {
 
     User.findOne({ username: userNew.username }).select('name username password').exec(function(err, user) {
         if (err) {
-            res.send(err);
+            return res.status(500).json({ success: false, msg: 'Error during authentication.' });
+        }
+
+        if (!user) {
+            return res.status(401).json({ success: false, msg: 'User not found.' });
         }
 
         user.comparePassword(userNew.password, function(isMatch) {
@@ -363,10 +367,10 @@ router.post('/signin', function (req, res) {
                 res.json ({success: true, token: 'JWT ' + token});
             }
             else {
-                res.status(401).send({success: false, msg: 'Authentication failed.'});
+                res.status(401).json({success: false, msg: 'Authentication failed. Wrong password.'});
             }
-        })
-    })
+        });
+    });
 });
 
 app.use('/', router);
@@ -379,11 +383,26 @@ app.use((err, req, res, next) => {
 
 // Start server only if we're not in a test environment
 if (process.env.NODE_ENV !== 'test') {
+    // Print JWT configuration information
+    console.log('JWT Configuration:', { 
+        hasSecretKey: !!process.env.SECRET_KEY, 
+        secretKeyLength: process.env.SECRET_KEY ? process.env.SECRET_KEY.length : 0 
+    });
+
     const port = process.env.PORT || 8080;
     app.listen(port, '0.0.0.0', () => {
         console.log(`Server is running on port ${port}`);
         console.log('Environment:', process.env.NODE_ENV || 'development');
         console.log('Database:', process.env.DB ? 'Connected' : 'Not connected');
+        
+        // Try to perform a simple database query to ensure connection is working
+        User.countDocuments({})
+            .then(count => {
+                console.log(`Database connection confirmed. Found ${count} users.`);
+            })
+            .catch(err => {
+                console.error('Database connection test failed:', err);
+            });
     }).on('error', (err) => {
         console.error('Server failed to start:', err);
         process.exit(1);
