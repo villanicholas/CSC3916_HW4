@@ -31,39 +31,48 @@ for (const envVar of requiredEnvVars) {
 
 var app = express();
 
-// Configure CORS with more specific options
+// Configure CORS
 app.use(cors({
-    origin: '*', // Allow all origins
+    origin: '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Ensure proper content-type for all responses
-app.use((req, res, next) => {
+// Serve static files BEFORE any other middleware
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Handle SPA routing
+app.get('/', function(req, res) {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Parse JSON bodies
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
+
+// Initialize passport
+app.use(passport.initialize());
+
+// API Routes
+var apiRouter = express.Router();
+
+// API middleware
+apiRouter.use((req, res, next) => {
     res.header('Content-Type', 'application/json');
     next();
 });
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
-
-// Serve static files from the public directory
-app.use(express.static(path.join(__dirname, 'public')));
-
-app.use(passport.initialize());
-
-var router = express.Router();
-
-// Add a simple status endpoint to check if server is running
-router.get('/status', function(req, res) {
+// API endpoints
+apiRouter.get('/status', function(req, res) {
     res.json({ 
         status: 'ok',
         timestamp: new Date().toISOString(),
-        environment: process.env.NODE_ENV || 'development',
-        database: process.env.DB ? 'configured' : 'not configured',
-        secret: process.env.SECRET_KEY ? 'configured' : 'not configured'
+        environment: process.env.NODE_ENV || 'development'
     });
 });
+
+// Mount API router
+app.use('/api', apiRouter);
 
 const GA_TRACKING_ID = process.env.GA_KEY;
 
@@ -112,8 +121,8 @@ function getJSONObjectForMovieRequirement(req) {
 }
 
 // Movies endpoints
-router.route('/movies')
-    .get(function (req, res) {
+apiRouter.route('/movies')
+    .get(authJwtController.isAuthenticated, function (req, res) {
         if (req.query.reviews === 'true') {
             Movie.aggregate([
                 {
@@ -121,8 +130,16 @@ router.route('/movies')
                         from: 'reviews',
                         localField: '_id',
                         foreignField: 'movieId',
-                        as: 'reviews'
+                        as: 'movieReviews'
                     }
+                },
+                {
+                    $addFields: {
+                        avgRating: { $avg: '$movieReviews.rating' }
+                    }
+                },
+                {
+                    $sort: { avgRating: -1 }
                 }
             ]).exec(function (err, movies) {
                 if (err) {
@@ -140,27 +157,51 @@ router.route('/movies')
         }
     })
     .post(authJwtController.isAuthenticated, function (req, res) {
-        if (!req.body.title || !req.body.year || !req.body.genre || !req.body.actors) {
+        // Validate required fields
+        if (!req.body.title || !req.body.releaseDate || !req.body.genre || !req.body.actors) {
             return res.json({ success: false, message: 'Please provide all required fields.' });
+        }
+
+        // Validate actors array
+        if (!Array.isArray(req.body.actors) || req.body.actors.length === 0) {
+            return res.json({ success: false, message: 'Actors must be a non-empty array.' });
+        }
+
+        // Validate each actor has required fields
+        for (let actor of req.body.actors) {
+            if (!actor.name || !actor.characterName) {
+                return res.json({ success: false, message: 'Each actor must have a name and characterName.' });
+            }
         }
 
         var movie = new Movie();
         movie.title = req.body.title;
-        movie.year = req.body.year;
+        movie.releaseDate = req.body.releaseDate;
         movie.genre = req.body.genre;
         movie.actors = req.body.actors;
         movie.imageUrl = req.body.imageUrl;
 
         movie.save(function (err) {
             if (err) {
+                // Handle validation errors
+                if (err.name === 'ValidationError') {
+                    return res.status(400).json({ 
+                        success: false, 
+                        message: 'Validation error',
+                        errors: Object.keys(err.errors).map(key => ({
+                            field: key,
+                            message: err.errors[key].message
+                        }))
+                    });
+                }
                 return res.json({ success: false, message: 'Error saving movie.' });
             }
-            res.json({ success: true, message: 'Movie created!' });
+            res.json({ success: true, message: 'Movie created!', movie: movie });
         });
     });
 
-router.route('/movies/:id')
-    .get(function (req, res) {
+apiRouter.route('/movies/:id')
+    .get(authJwtController.isAuthenticated, function (req, res) {
         if (req.query.reviews === 'true') {
             Movie.aggregate([
                 {
@@ -171,7 +212,12 @@ router.route('/movies/:id')
                         from: 'reviews',
                         localField: '_id',
                         foreignField: 'movieId',
-                        as: 'reviews'
+                        as: 'movieReviews'
+                    }
+                },
+                {
+                    $addFields: {
+                        avgRating: { $avg: '$movieReviews.rating' }
                     }
                 }
             ]).exec(function (err, movie) {
@@ -240,7 +286,15 @@ router.route('/movies/:id')
     });
 
 // Reviews endpoints
-router.route('/reviews')
+apiRouter.route('/reviews')
+    .get(authJwtController.isAuthenticated, function (req, res) {
+        Review.find(function (err, reviews) {
+            if (err) {
+                return res.status(500).json({ success: false, message: 'Error getting reviews.' });
+            }
+            res.json({ success: true, reviews: reviews });
+        });
+    })
     .post(authJwtController.isAuthenticated, function (req, res) {
         if (!req.body.movieId || !req.body.review || !req.body.rating) {
             return res.json({ success: false, message: 'Please provide all required fields.' });
@@ -275,7 +329,18 @@ router.route('/reviews')
         });
     });
 
-router.route('/reviews/:id')
+apiRouter.route('/reviews/:id')
+    .get(authJwtController.isAuthenticated, function (req, res) {
+        Review.findById(req.params.id, function (err, review) {
+            if (err) {
+                return res.status(500).json({ success: false, message: 'Error getting review.' });
+            }
+            if (!review) {
+                return res.status(404).json({ success: false, message: 'Review not found.' });
+            }
+            res.json({ success: true, review: review });
+        });
+    })
     .put(authJwtController.isAuthenticated, function (req, res) {
         if (!req.body.review || !req.body.rating) {
             return res.json({ success: false, message: 'Please provide all required fields.' });
@@ -324,7 +389,7 @@ router.route('/reviews/:id')
         });
     });
 
-router.post('/signup', function(req, res) {
+apiRouter.post('/signup', function(req, res) {
     if (!req.body.username || !req.body.password) {
         res.json({success: false, msg: 'Please include both username and password to signup.'})
     } else {
@@ -346,7 +411,7 @@ router.post('/signup', function(req, res) {
     }
 });
 
-router.post('/signin', function (req, res) {
+apiRouter.post('/signin', function (req, res) {
     var userNew = new User();
     userNew.username = req.body.username;
     userNew.password = req.body.password;
@@ -372,8 +437,6 @@ router.post('/signin', function (req, res) {
         });
     });
 });
-
-app.use('/', router);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

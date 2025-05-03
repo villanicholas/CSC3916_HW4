@@ -1,0 +1,59 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+}
+
+.auth-form {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 20px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.movie-card {
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.movie-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.movie-card img {
+    height: 300px;
+    object-fit: cover;
+}
+
+.movie-detail {
+    max-width: 800px;
+    margin: 20px auto;
+}
+
+.movie-detail img {
+    max-height: 400px;
+    object-fit: cover;
+}
+
+.review-card {
+    margin-bottom: 15px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.rating {
+    color: #ffc107;
+    font-weight: bold;
+}
+
+.actor-list {
+    margin-top: 20px;
+}
+
+.actor-list li {
+    padding: 10px;
+    border-left: 3px solid #007bff;
+    margin-bottom: 5px;
+    background-color: #f8f9fa;
+} 
