@@ -138,11 +138,16 @@
 								"key": "Authorization",
 								"value": "{{TOKEN}}",
 								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
 							}
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"title\": \"Test Movie\",\n    \"year\": 2024,\n    \"genre\": \"Action\",\n    \"actors\": [\"Actor 1\", \"Actor 2\"],\n    \"imageUrl\": \"https://example.com/movie.jpg\"\n}",
+							"raw": "{\n    \"title\": \"The Matrix\",\n    \"releaseDate\": 1999,\n    \"genre\": \"Sci-Fi\",\n    \"actors\": [\n        {\n            \"name\": \"Keanu Reeves\",\n            \"characterName\": \"Neo\"\n        },\n        {\n            \"name\": \"Laurence Fishburne\",\n            \"characterName\": \"Morpheus\"\n        }\n    ],\n    \"imageUrl\": \"https://example.com/matrix.jpg\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -154,7 +159,8 @@
 							"host": ["{{BASE_URL}}"],
 							"path": ["movies"]
 						}
-					}
+					},
+					"response": []
 				},
 				{
 					"name": "Update Movie",
